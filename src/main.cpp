@@ -4,21 +4,18 @@
 #include <utility/imumaths.h>
 
 // ?Constants
-// Movement Calibration
-const int fullTile = 788;
-const int halfTile = 394;
 
 // Motor Pins
-const uint8_t MOTOR_PWM[] = {9, 10};
-const uint8_t MOTOR_IN1[] = {4, 6};
-const uint8_t MOTOR_IN2[] = {5, 7};
+const uint8_t motorPWM[] = {9, 10};
+const uint8_t motorIN1[] = {4, 6};
+const uint8_t motorIN2[] = {5, 7};
 
 // Encoder Pins
-const int ENCODER_A[] = {2, 3};
-const int ENCODER_B[] = {13, 12};
+const int encoderA[] = {2, 3};
+const int encoderB[] = {13, 12};
 
 // Button
-const uint8_t START_BUTTON = 8;
+const uint8_t buttonPin = 8;
 
 // Movement Parameters
 const int straightSpeed = 220;
@@ -26,7 +23,7 @@ const int brakePower = 100;
 const int brakeDuration = 75;
 const int turnPower = 100;
 const int turnBrakePower = 140;
-const float turnTolerance = 2.5; // Degrees
+const float turnTolerance = 1; // Degrees
 
 // ?Global Variables
 volatile int encoderPos[] = {0, 0};
@@ -36,6 +33,8 @@ long prevTime;
 long deltaTime;
 double gyroHeadings[3];
 float targetAngle = 0;
+
+bool waitingForButton = false;
 
 // ?Forward Declarations
 double headingDiff(double h1, double h2);
@@ -86,60 +85,88 @@ SimplePID pidTurn;
 
 // ?Setup
 void setup() {
+  Serial.begin(9600);
+
   // Configure PID controllers
   pidStraight.setParams(5.0, 0.0, 0.01, 255, 80);
   pidTurn.setParams(1.0, 0.25, 0.0, 200, 80);
 
   // Initialize Button
-  pinMode(START_BUTTON, INPUT_PULLUP);
+  pinMode(buttonPin, INPUT_PULLUP);
 
   // Initialize Encoders
-  attachInterrupt(digitalPinToInterrupt(ENCODER_A[0]), readEncoder<0>, RISING);
-  attachInterrupt(digitalPinToInterrupt(ENCODER_A[1]), readEncoder<1>, RISING);
+  attachInterrupt(digitalPinToInterrupt(encoderA[0]), readEncoder<0>, RISING);
+  attachInterrupt(digitalPinToInterrupt(encoderA[1]), readEncoder<1>, RISING);
 
-  // Pause Until Button Press
-  while (digitalRead(START_BUTTON)) {
-    delay(100);
+  if (!bno.begin()) {
+    Serial.println("BNO055 Not Detected");
+  } else {
+    Serial.println("BNO055 Initialized");
   }
 
   initGyro();
   delay(500);
+
+  Serial.println("Initiliazation Successful");
+  waitingForButton = true;
 }
 
 // ?Main Loop
 void loop() {
-  /*
   // Full Tile: 788 Ticks, fwd(fullTile);
   // Half Tile: 394 Ticks, fwd(halfTile);
-  */
+  // Robot Length: 315 Ticks
+
+  const int fullTile = 788;
+  const int halfTile = 394;
+  const int robotLength = 315;
+
+  while (waitingForButton) {
+    if (digitalRead(buttonPin) == 0) {
+      waitingForButton = false;
+      Serial.println("Starting Sequences");
+      delay(100); // Debounce
+    } else {
+      delay(10);
+    }
+  }
 
   fwd(fullTile);
-  right(90);
+  fwd(fullTile);
+  
   fwd(halfTile);
-  left(90);
+  fwd(halfTile);
+
+  right(180);
+  back(halfTile);
+  fwd(fullTile);
+  fwd(fullTile);
+  fwd(fullTile);
 
   // Stop robot
   stopMotors();
-  while (1) {
-    delay(10);
-  }
+  while(1) {delay(100000000);}
 }
 
 // ?Movement Commands
 void fwd(int ticks) {
   moveStraight(ticks, 'f');
+  delay(100);
 }
 
 void back(int ticks) {
   moveStraight(ticks, 'b');
+  delay(100);
 }
 
 void right(int angle) {
   turn(angle, 1);
+  delay(100);
 }
 
 void left(int angle) {
   turn(-angle, -1);
+  delay(100);
 }
 
 // ?Movement Implementations
@@ -202,17 +229,17 @@ void turn(float angle, int direction) {
 
 // ?Motor Control
 void setMotor(int dir, int pwmVal, int motorIndex) {
-  analogWrite(MOTOR_PWM[motorIndex], pwmVal);
+  analogWrite(motorPWM[motorIndex], pwmVal);
 
   if (dir == -1) {
-    digitalWrite(MOTOR_IN1[motorIndex], HIGH);
-    digitalWrite(MOTOR_IN2[motorIndex], LOW);
+    digitalWrite(motorIN1[motorIndex], HIGH);
+    digitalWrite(motorIN2[motorIndex], LOW);
   } else if (dir == 1) {
-    digitalWrite(MOTOR_IN1[motorIndex], LOW);
-    digitalWrite(MOTOR_IN2[motorIndex], HIGH);
+    digitalWrite(motorIN1[motorIndex], LOW);
+    digitalWrite(motorIN2[motorIndex], HIGH);
   } else {
-    digitalWrite(MOTOR_IN1[motorIndex], LOW);
-    digitalWrite(MOTOR_IN2[motorIndex], LOW);
+    digitalWrite(motorIN1[motorIndex], LOW);
+    digitalWrite(motorIN2[motorIndex], LOW);
   }
 }
 
@@ -229,6 +256,7 @@ void applyBrake(char direction) {
     setMotor(-1, brakePower, 0);
     setMotor(1, brakePower, 1);
   }
+  
   delay(brakeDuration);
 }
 
@@ -265,6 +293,6 @@ double headingDiff(double h1, double h2) {
 
 template <int j>
 void readEncoder() {
-  int b = digitalRead(ENCODER_B[j]);
+  int b = digitalRead(encoderB[j]);
   encoderPos[j] += (b > 0) ? 1 : -1;
 }
