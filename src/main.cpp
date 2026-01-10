@@ -18,12 +18,12 @@ const int encoderB[] = {13, 12};
 const uint8_t buttonPin = 8;
 
 // Movement Parameters
-const int straightSpeed = 220;
+const int straightSpeed = 200;
 const int brakePower = 100;
-const int brakeDuration = 75;
+const int brakeDuration = 100;
 const int turnPower = 100;
-const int turnBrakePower = 140;
-const float turnTolerance = 1; // Degrees
+const int turnBrakePower = 200;
+const float turnTolerance = 1.5; // Degrees
 
 // ?Global Variables
 volatile int encoderPos[] = {0, 0};
@@ -113,13 +113,13 @@ void setup() {
 
 // ?Main Loop
 void loop() {
-  // Full Tile: 788 Ticks, fwd(fullTile);
-  // Half Tile: 394 Ticks, fwd(halfTile);
-  // Robot Length: 315 Ticks
+  // Full Tile: 780 Ticks, fwd(fullTile);
+  // Half Tile: 400 Ticks, fwd(halfTile);
+  // Robot Length: 100 Ticks
 
-  const int fullTile = 788;
-  const int halfTile = 394;
-  const int robotLength = 315;
+  const int fullTile = 780;
+  const int halfTile = 400;
+  const int robotLength = 100;
 
   while (waitingForButton) {
     if (digitalRead(buttonPin) == 0) {
@@ -131,16 +131,45 @@ void loop() {
     }
   }
 
+  fwd(halfTile);
+  fwd(robotLength);
+  right(90);
+  fwd(fullTile);
+  left(90);
+  fwd(fullTile);
+  left(90);
   fwd(fullTile);
   fwd(fullTile);
-  
-  fwd(halfTile);
-  fwd(halfTile);
+  fwd(robotLength);
+  left(90);
+  fwd(fullTile);
+  right(90);
+  fwd(fullTile);
 
-  right(180);
-  back(halfTile);
+  fwd(robotLength);
+  right(90);
   fwd(fullTile);
   fwd(fullTile);
+  fwd(robotLength);
+  right(90);
+  fwd(fullTile);
+  fwd(robotLength);
+  left(90);
+  fwd(fullTile);
+  fwd(robotLength);
+  right(90);
+  fwd(fullTile);
+
+  fwd(fullTile);
+  fwd(robotLength);
+  right(90);
+  fwd(fullTile);
+  fwd(fullTile);
+  fwd(fullTile);
+  left(90);
+  fwd(fullTile);
+  fwd(robotLength);
+  left(90);
   fwd(fullTile);
 
   // Stop robot
@@ -151,22 +180,22 @@ void loop() {
 // ?Movement Commands
 void fwd(int ticks) {
   moveStraight(ticks, 'f');
-  delay(100);
+  delay(50);
 }
 
 void back(int ticks) {
   moveStraight(ticks, 'b');
-  delay(100);
+  delay(50);
 }
 
 void right(int angle) {
   turn(angle, 1);
-  delay(100);
+  delay(50);
 }
 
 void left(int angle) {
   turn(-angle, -1);
-  delay(100);
+  delay(50);
 }
 
 // ?Movement Implementations
