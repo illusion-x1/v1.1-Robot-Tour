@@ -131,47 +131,6 @@ void loop() {
     }
   }
 
-  fwd(halfTile);
-  fwd(robotLength);
-  right(90);
-  fwd(fullTile);
-  left(90);
-  fwd(fullTile);
-  left(90);
-  fwd(fullTile);
-  fwd(fullTile);
-  fwd(robotLength);
-  left(90);
-  fwd(fullTile);
-  right(90);
-  fwd(fullTile);
-
-  fwd(robotLength);
-  right(90);
-  fwd(fullTile);
-  fwd(fullTile);
-  fwd(robotLength);
-  right(90);
-  fwd(fullTile);
-  fwd(robotLength);
-  left(90);
-  fwd(fullTile);
-  fwd(robotLength);
-  right(90);
-  fwd(fullTile);
-
-  fwd(fullTile);
-  fwd(robotLength);
-  right(90);
-  fwd(fullTile);
-  fwd(fullTile);
-  fwd(fullTile);
-  left(90);
-  fwd(fullTile);
-  fwd(robotLength);
-  left(90);
-  fwd(fullTile);
-
   // Stop robot
   stopMotors();
   while(1) {delay(100000000);}
