@@ -16,11 +16,11 @@ const int encoderB[] = {13, 12};
 const uint8_t buttonPin = 8;
 
 // Movement Parameters
-const int straightSpeed = 160;
+const int straightSpeed = 140;
 const int brakePower = 100;
-const int brakeDuration = 100;
+const int brakeDuration = 120;
 const int turnPower = 100;
-const int turnBrakePower = 200;
+const int turnBrakePower = 120;
 const float turnTolerance = 1; // Degrees
 
 // ?Global Variables
@@ -86,7 +86,7 @@ void setup() {
   Serial.begin(9600);
 
   // Configure PID controllers
-  pidStraight.setParams(2.35, 0.5, 0, 255, 80);
+  pidStraight.setParams(4, 0, 0, 255, 0);
   pidTurn.setParams(1.0, 0.25, 0.0, 200, 80);
 
   // Initialize Button
@@ -104,8 +104,16 @@ void setup() {
 
   initGyro();
   delay(500);
+  
+  /*
+  setMotor(-1, 255, 0);
+  setMotor(1, 255, 1);
+  delay(10000);
+  stopMotors();
+  Serial.println("Motor Test Complete");
+  */
 
-  Serial.println("Initiliazation Successful");
+  Serial.println("Initialization Successful");
   waitingForButton = true;
 }
 
@@ -146,6 +154,8 @@ void loop() {
   left(90);
   fwd(fullTile);
   back(robotLength);
+
+  //fwd(fullTile*4);
 
   // Stop robot
   stopMotors();
@@ -193,6 +203,9 @@ void moveStraight(int targetTicks, char direction) {
     if (direction == 'f') {
       setMotor(-1, leftPwr, 0);
       setMotor(1, rightPwr, 1);
+      Serial.println("Left Power: " + String(leftPwr) + " Right Power: " + String(rightPwr));
+      Serial.println("Heading: " + String(gyroHeadings[0]) + " Target: " + String(targetAngle) + "\n");
+      //Serial.println(correctionPwr);
     } else {
       setMotor(1, rightPwr, 0);
       setMotor(-1, leftPwr, 1);
