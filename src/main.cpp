@@ -16,10 +16,10 @@ const int encoderB[] = {13, 12};
 const uint8_t buttonPin = 8;
 
 // Movement Parameters
-const int straightSpeed = 180;
+const int straightSpeed = 160;
 const int brakePower = 100;
 const int brakeDuration = 100;
-const int turnPower = 80;
+const int turnPower = 100;
 const int turnBrakePower = 200;
 const float turnTolerance = 1; // Degrees
 
@@ -86,7 +86,7 @@ void setup() {
   Serial.begin(9600);
 
   // Configure PID controllers
-  pidStraight.setParams(5.0, 0.0, 0.01, 255, 80);
+  pidStraight.setParams(2.35, 0.5, 0, 255, 80);
   pidTurn.setParams(1.0, 0.25, 0.0, 200, 80);
 
   // Initialize Button
