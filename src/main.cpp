@@ -19,7 +19,7 @@ const uint8_t buttonPin = 8;
 const int straightSpeed = 140;
 const int brakePower = 100;
 const int brakeDuration = 120;
-const int turnPower = 100;
+const int turnPower = 90;
 const int turnBrakePower = 120;
 const float turnTolerance = 1; // Degrees
 
@@ -104,14 +104,6 @@ void setup() {
 
   initGyro();
   delay(500);
-  
-  /*
-  setMotor(-1, 255, 0);
-  setMotor(1, 255, 1);
-  delay(10000);
-  stopMotors();
-  Serial.println("Motor Test Complete");
-  */
 
   Serial.println("Initialization Successful");
   waitingForButton = true;
@@ -121,7 +113,7 @@ void setup() {
 void loop() {
   // Full Tile: 780 Ticks, fwd(fullTile);
   // Half Tile: 400 Ticks, fwd(halfTile);
-  // Robot Length: 100 Ticks
+  // Robot Length: 180 Ticks, fwd(robotLength);
 
   const int fullTile = 780;
   const int halfTile = 400;
@@ -154,8 +146,6 @@ void loop() {
   left(90);
   fwd(fullTile);
   back(robotLength);
-
-  //fwd(fullTile*4);
 
   // Stop robot
   stopMotors();
@@ -203,9 +193,6 @@ void moveStraight(int targetTicks, char direction) {
     if (direction == 'f') {
       setMotor(-1, leftPwr, 0);
       setMotor(1, rightPwr, 1);
-      Serial.println("Left Power: " + String(leftPwr) + " Right Power: " + String(rightPwr));
-      Serial.println("Heading: " + String(gyroHeadings[0]) + " Target: " + String(targetAngle) + "\n");
-      //Serial.println(correctionPwr);
     } else {
       setMotor(1, rightPwr, 0);
       setMotor(-1, leftPwr, 1);
@@ -235,7 +222,6 @@ void turn(float angle, int direction) {
     setMotor(direction, turnPower, 1);
   }
 
-  // Counter-rotation to stop
   setMotor(-direction, turnBrakePower, 0);
   setMotor(-direction, turnBrakePower, 1);
   delay(brakeDuration);
