@@ -16,7 +16,7 @@ const int encoderB[] = {13, 12};
 const uint8_t buttonPin = 8;
 
 // Movement Parameters
-const int straightSpeed = 140;
+const int straightSpeed = 160;
 const int brakePower = 100;
 const int brakeDuration = 120;
 const int turnPower = 90;
@@ -84,9 +84,10 @@ SimplePID pidTurn;
 // ?Setup
 void setup() {
   Serial.begin(9600);
+  Serial.println("Robot Initialization");
 
   // Configure PID controllers
-  pidStraight.setParams(4, 0, 0, 255, 0);
+  pidStraight.setParams(5, 0, 0, 255, 0);
   pidTurn.setParams(1.0, 0.25, 0.0, 200, 80);
 
   // Initialize Button
@@ -96,14 +97,17 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(encoderA[0]), readEncoder<0>, RISING);
   attachInterrupt(digitalPinToInterrupt(encoderA[1]), readEncoder<1>, RISING);
 
+  Serial.println("Initializing Gyro...");
   if (!bno.begin()) {
     Serial.println("BNO055 Not Detected");
   } else {
     Serial.println("BNO055 Initialized");
   }
 
+  Serial.println("Calibrating Gyro...");
   initGyro();
   delay(500);
+  Serial.println("Gyro Calibration Complete");
 
   Serial.println("Initialization Successful");
   waitingForButton = true;
@@ -184,8 +188,8 @@ void moveStraight(int targetTicks, char direction) {
     int correctionPwr, correctionDir;
     pidStraight.evaluate(gyroHeadings[0], targetAngle, deltaTime, correctionPwr, correctionDir);
 
-    int leftPwr = straightSpeed - (correctionPwr * correctionDir);
-    int rightPwr = straightSpeed + (correctionPwr * correctionDir);
+    int leftPwr = straightSpeed - (correctionPwr * -correctionDir);
+    int rightPwr = straightSpeed + (correctionPwr * -correctionDir);
 
     leftPwr = constrain(leftPwr, 0, 255);
     rightPwr = constrain(rightPwr, 0, 255);
@@ -235,11 +239,11 @@ void setMotor(int dir, int pwmVal, int motorIndex) {
   analogWrite(motorPWM[motorIndex], pwmVal);
 
   if (dir == -1) {
-    digitalWrite(motorIN1[motorIndex], HIGH);
-    digitalWrite(motorIN2[motorIndex], LOW);
-  } else if (dir == 1) {
     digitalWrite(motorIN1[motorIndex], LOW);
     digitalWrite(motorIN2[motorIndex], HIGH);
+  } else if (dir == 1) {
+    digitalWrite(motorIN1[motorIndex], HIGH);
+    digitalWrite(motorIN2[motorIndex], LOW);
   } else {
     digitalWrite(motorIN1[motorIndex], LOW);
     digitalWrite(motorIN2[motorIndex], LOW);
