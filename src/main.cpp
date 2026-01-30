@@ -16,12 +16,12 @@ const int encoderB[] = {13, 12};
 const uint8_t buttonPin = 8;
 
 // Movement Parameters
-const int straightSpeed = 160;
-const int brakePower = 100;
+const int straightSpeed = 140;
+const int brakePower = 110;
 const int brakeDuration = 120;
 const int turnPower = 90;
-const int turnBrakePower = 120;
-const float turnTolerance = 1; // Degrees
+const int turnBrakePower = 135;
+const float turnTolerance = 0.75; // Degrees
 
 // ?Global Variables
 volatile int encoderPos[] = {0, 0};
@@ -116,12 +116,12 @@ void setup() {
 // ?Main Loop
 void loop() {
   // Full Tile: 780 Ticks, fwd(fullTile);
-  // Half Tile: 400 Ticks, fwd(halfTile);
-  // Robot Length: 180 Ticks, fwd(robotLength);
+  // Half Tile: 390 Ticks, fwd(halfTile);
+  // Robot Length: 180 Ticks, fwd(robotLength); [Not Used w/ Current Setup]
 
   const int fullTile = 780;
-  const int halfTile = 400;
-  const int robotLength = 180;
+  const int halfTile = 390;
+  // const int robotLength = 180;
 
   while (waitingForButton) {
     if (digitalRead(buttonPin) == 0) {
@@ -133,23 +133,8 @@ void loop() {
     }
   }
 
-  fwd(robotLength);
+  // ?Movement Sequence
   fwd(halfTile);
-  fwd(fullTile);
-  left(90);
-  fwd(fullTile);
-  right(90);
-  fwd(fullTile);
-  back(fullTile);
-  right(90);
-  fwd(fullTile);
-  fwd(fullTile);
-  back(fullTile);
-  right(90);
-  fwd(fullTile);
-  left(90);
-  fwd(fullTile);
-  back(robotLength);
 
   // Stop robot
   stopMotors();
