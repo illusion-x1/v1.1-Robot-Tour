@@ -16,7 +16,13 @@ const int encoderB[] = {13, 12};
 const uint8_t buttonPin = 8;
 
 // Movement Parameters
-const int straightSpeed = 100;
+int accumulatedDistanceError = 0;
+int temporaryDistanceError = 0;
+
+int fullTile;
+int halfTile;
+
+const int straightSpeed = 95;
 const int brakePower = 100;
 const int brakeDuration = 120;
 const int turnPower = 80;
@@ -35,17 +41,26 @@ float targetAngle = 0;
 bool waitingForButton = false;
 
 // ?Forward Declarations
+int computeDistanceError();
 double headingDiff(double h1, double h2);
 template <int j> void readEncoder();
+
 void fwd(int ticks);
 void back(int ticks);
 void right(int angle);
 void left(int angle);
+void fixError();
+
 void moveStraight(int targetTicks, char direction);
 void turn(float angle, int direction);
+
 void setMotor(int dir, int pwmVal, int motorIndex);
 void stopMotors();
 void applyBrake(char direction);
+
+void testStraightRoute();
+void testLongRoute();
+
 void initGyro();
 void updateGyro();
 void computeDeltaT();
@@ -119,8 +134,8 @@ void loop() {
   // Half Tile: 390 Ticks, fwd(halfTile);
   // Robot Length: 180 Ticks, fwd(robotLength);
 
-  const int fullTile = 790;
-  const int halfTile = fullTile / 2;
+  fullTile = 790;
+  halfTile = fullTile / 2;
   // const int robotLength = 180;
 
   while (waitingForButton) {
@@ -134,73 +149,21 @@ void loop() {
   }
 
   // ?Movement Sequence
-  /*
-  fwd(fullTile);
-  fwd(fullTile);
-  fwd(fullTile);
-  fwd(fullTile);
-  fwd(fullTile);
-
-  right(90);
-  right(90);
+  // testStraightRoute(5, 2);
+  // testLongRoute();
 
   fwd(fullTile);
   fwd(fullTile);
   fwd(fullTile);
-  fwd(fullTile);
-  fwd(fullTile);
-
+  fixError();
   right(90);
   right(90);
-
   fwd(fullTile);
   fwd(fullTile);
   fwd(fullTile);
-  fwd(fullTile);
-  fwd(fullTile);
-
-  right(90);
-  right(90);
-
-  fwd(fullTile);
-  fwd(fullTile);
-  fwd(fullTile);
-  fwd(fullTile);
-  fwd(fullTile);
-
-  right(90);
-  right(90);
-  */
-
-  fwd(halfTile);
-  right(90);
-  fwd(fullTile);
-
-  back(fullTile);
+  fixError();
   left(90);
-  fwd(fullTile);
-  fwd(fullTile);
-  fwd(fullTile);
   left(90);
-  fwd(fullTile);
-  left(90);
-  fwd(fullTile);
-
-  back(fullTile);
-  right(90);
-  fwd(fullTile);
-  fwd(fullTile);
-
-  back(fullTile);
-  left(90);
-  fwd(fullTile);
-  fwd(fullTile);
-  fwd(fullTile);
-  back(fullTile);
-  right(90);
-  fwd(fullTile);
-  left(90);
-  fwd(fullTile);
 
   // Stop robot
   stopMotors();
@@ -226,6 +189,18 @@ void right(int angle) {
 void left(int angle) {
   turn(-angle, -1);
   delay(50);
+}
+
+void fixError() {
+  if (accumulatedDistanceError != 0) {
+    int correctionTicks = abs(accumulatedDistanceError);
+    if (accumulatedDistanceError > 0) {
+      fwd(correctionTicks);
+    } else {
+      back(correctionTicks);
+    }
+    accumulatedDistanceError = 0;
+  }
 }
 
 // ?Movement Implementations
@@ -257,6 +232,8 @@ void moveStraight(int targetTicks, char direction) {
   applyBrake(direction);
   stopMotors();
   delay(100);
+
+  temporaryDistanceError = targetTicks - encoderPos[1];
 }
 
 void turn(float angle, int direction) {
@@ -334,7 +311,78 @@ void updateGyro() {
   gyroHeadings[2] = euler.z();
 }
 
+// ?Test Track Functions
+void testStraightRoute(int numOfTilesToTravel, int numOfRoutesToComplete) {
+  
+  int straightRouteCounter = 0;
+  int tilesTraveledCounter = 0;
+  
+  if (straightRouteCounter <= numOfRoutesToComplete) {
+
+    if (tilesTraveledCounter < numOfTilesToTravel) {
+      fwd(fullTile);
+      tilesTraveledCounter++;
+    } else {
+      tilesTraveledCounter = 0;
+    }
+
+    right(90);
+    right(90);
+
+    if (tilesTraveledCounter < numOfTilesToTravel) {
+      fwd(fullTile);
+      tilesTraveledCounter++;
+    } else {
+      tilesTraveledCounter = 0;
+    }
+    
+    left(90);
+    left(90);
+
+    straightRouteCounter++;
+  }
+}
+
+void testLongRoute() {
+  fwd(halfTile);
+  right(90);
+  fwd(fullTile);
+
+  right(90);
+  right(90);
+  fwd(fullTile);
+  right(90);
+  fwd(fullTile);
+  fwd(fullTile);
+  fwd(fullTile);
+  left(90);
+  fwd(fullTile);
+  left(90);
+  fwd(fullTile);
+
+  back(fullTile);
+  right(90);
+  fwd(fullTile);
+  fwd(fullTile);
+
+  back(fullTile);
+  left(90);
+  fwd(fullTile);
+  fwd(fullTile);
+  fwd(fullTile);
+  back(fullTile);
+  right(90);
+  fwd(fullTile);
+  left(90);
+  fwd(fullTile);
+}
+
 // ?Utility Functions
+int computeDistanceError() {
+  accumulatedDistanceError = accumulatedDistanceError + temporaryDistanceError;
+  return accumulatedDistanceError;
+}
+
 void computeDeltaT() {
   long currTime = millis();
   deltaTime = currTime - prevTime;
