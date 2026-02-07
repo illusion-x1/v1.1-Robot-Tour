@@ -3,6 +3,7 @@
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
 
+// ?Pin Definitions
 // Motor Pins
 const uint8_t motorPWM[] = {9, 10};
 const uint8_t motorIN1[] = {4, 6};
@@ -15,19 +16,27 @@ const int encoderB[] = {13, 12};
 // Button
 const uint8_t buttonPin = 8;
 
+// ?Global Variables
 // Movement Parameters
 int accumulatedDistanceError = 0;
 int temporaryDistanceError = 0;
+int backwardsErrorCompensationTicks = 0;
 
 int fullTile;
 int halfTile;
+int robotLength;
 
-const int straightSpeed = 95;
-const int brakePower = 100;
+const int straightSpeed = 110;
+const int brakePower = 120;
 const int brakeDuration = 120;
 const int turnPower = 80;
 const int turnBrakePower = 90;
 const float turnTolerance = 1; // Degrees
+
+// Timing Variables
+unsigned long targetTime;
+unsigned long timeError;
+unsigned long previousRunTime;
 
 // ?Global Variables
 volatile int encoderPos[] = {0, 0};
@@ -49,7 +58,7 @@ void fwd(int ticks);
 void back(int ticks);
 void right(int angle);
 void left(int angle);
-void fixError();
+void fixError(int direction, int motorID, int turnTime);
 
 void moveStraight(int targetTicks, char direction);
 void turn(float angle, int direction);
@@ -126,6 +135,10 @@ void setup() {
 
   Serial.println("Initialization Successful");
   waitingForButton = true;
+
+  if (previousRunTime < 0) {
+    timeError = targetTime - previousRunTime;
+  }
 }
 
 // ?Main Loop
@@ -134,16 +147,23 @@ void loop() {
   // Half Tile: 390 Ticks, fwd(halfTile);
   // Robot Length: 180 Ticks, fwd(robotLength);
 
-  fullTile = 790;
+  fullTile = 780;
   halfTile = fullTile / 2;
-  // const int robotLength = 180;
+  robotLength = 180;
+
+  backwardsErrorCompensationTicks = 70;
+
+  targetTime = 60; // Seconds
+  previousRunTime = 50;
+
+  // fixError(); // direction (1 = fwd, -1, back), motorID (1 = left, 0 = right), turnTime (ms)
 
   while (waitingForButton) {
     if (digitalRead(buttonPin) == 0) {
       waitingForButton = false;
       Serial.println("Starting Sequences");
       delay(100); // Debounce
-    } else {
+    } else { 
       delay(10);
     }
   }
@@ -152,55 +172,66 @@ void loop() {
   // testStraightRoute(5, 2);
   // testLongRoute();
 
+  fwd(halfTile);
   fwd(fullTile);
-  fwd(fullTile);
-  fwd(fullTile);
-  fixError();
-  right(90);
   right(90);
   fwd(fullTile);
-  fwd(fullTile);
-  fwd(fullTile);
-  fixError();
-  left(90);
-  left(90);
 
-  // Stop robot
-  stopMotors();
-  while(1) {delay(100000000);}
+  back(fullTile);
+  left(180);
+  fwd(fullTile);
+  fwd(fullTile);
+  left(90);
+  fwd(fullTile);
+
+  back(fullTile);
+  right(180);
+  fwd(fullTile);
+  fwd(fullTile);
+  fwd(fullTile);
+  right(90);
+  fwd(fullTile);
+
+  back(fullTile);
+  right(90);
+  fwd(fullTile);
+  left(90);
+  fwd(fullTile);
+  fwd(fullTile);
+  fwd(fullTile);
+  right(90);
+  fwd(fullTile);
+  right(90);
+  fwd(fullTile);
+  fwd(fullTile);
+
+  //fixError(-1, 0, 1500);
+
+  while (1) {delay(1000000);}
+
 }
 
 // ?Movement Commands
 void fwd(int ticks) {
   moveStraight(ticks, 'f');
-  delay(50);
 }
 
 void back(int ticks) {
-  moveStraight(ticks, 'b');
-  delay(50);
+  moveStraight(ticks + backwardsErrorCompensationTicks, 'b');
 }
 
 void right(int angle) {
   turn(angle, 1);
-  delay(50);
 }
 
 void left(int angle) {
   turn(-angle, -1);
-  delay(50);
 }
 
-void fixError() {
-  if (accumulatedDistanceError != 0) {
-    int correctionTicks = abs(accumulatedDistanceError);
-    if (accumulatedDistanceError > 0) {
-      fwd(correctionTicks);
-    } else {
-      back(correctionTicks);
-    }
-    accumulatedDistanceError = 0;
-  }
+void fixError(int direction, int motorID, int turnTime) {
+  setMotor(direction * -1, straightSpeed, motorID);
+  delay(turnTime);
+  stopMotors();
 }
 
 // ?Movement Implementations
@@ -364,6 +395,7 @@ void testLongRoute() {
   right(90);
   fwd(fullTile);
   fwd(fullTile);
+  delay(timeError * 1000);
 
   back(fullTile);
   left(90);
