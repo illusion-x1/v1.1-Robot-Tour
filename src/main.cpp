@@ -26,8 +26,8 @@ int fullTile;
 int halfTile;
 int robotLength;
 
-const int straightSpeed = 110;
-const int brakePower = 120;
+const int straightSpeed = 100;
+const int brakePower = 110;
 const int brakeDuration = 120;
 const int turnPower = 80;
 const int turnBrakePower = 90;
@@ -63,12 +63,12 @@ void fixError(int direction, int motorID, int turnTime);
 void moveStraight(int targetTicks, char direction);
 void turn(float angle, int direction);
 
+void testStraightRoute(int numOfTilesToTravel, int numOfRoutesToComplete);
+void testLongRoute();
+
 void setMotor(int dir, int pwmVal, int motorIndex);
 void stopMotors();
 void applyBrake(char direction);
-
-void testStraightRoute();
-void testLongRoute();
 
 void initGyro();
 void updateGyro();
@@ -169,43 +169,7 @@ void loop() {
   }
 
   // ?Movement Sequence
-  // testStraightRoute(5, 2);
-  // testLongRoute();
-
-  fwd(halfTile);
-  fwd(fullTile);
-  right(90);
-  fwd(fullTile);
-
-  back(fullTile);
-  left(180);
-  fwd(fullTile);
-  fwd(fullTile);
-  left(90);
-  fwd(fullTile);
-
-  back(fullTile);
-  right(180);
-  fwd(fullTile);
-  fwd(fullTile);
-  fwd(fullTile);
-  right(90);
-  fwd(fullTile);
-
-  back(fullTile);
-  right(90);
-  fwd(fullTile);
-  left(90);
-  fwd(fullTile);
-  fwd(fullTile);
-  fwd(fullTile);
-  right(90);
-  fwd(fullTile);
-  right(90);
-  fwd(fullTile);
-  fwd(fullTile);
-
-  //fixError(-1, 0, 1500);
+  
 
   while (1) {delay(1000000);}
 
