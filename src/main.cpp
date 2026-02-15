@@ -169,8 +169,49 @@ void loop() {
   }
 
   // ?Movement Sequence
+  fwd(halfTile);
+  fwd(fullTile);
+  fwd(fullTile);
+  fwd(fullTile);
   
+  back(fullTile);
+  right(90);
+  fwd(fullTile);
+  left(90);
+  fwd(fullTile);
 
+  right(90);
+  fwd(fullTile);
+  right(90);
+  fwd(fullTile);
+  fwd(fullTile);
+  fwd(fullTile);
+  right(90);
+  fwd(fullTile);
+  right(90);
+  fwd(fullTile);
+
+  back(fullTile);
+  left(90);
+  fwd(fullTile);
+  fwd(fullTile);
+  right(90);
+  fwd(fullTile);
+  left(90);
+  fwd(fullTile);
+  left(90);
+  fwd(fullTile);
+
+  back(fullTile);
+  right(90);
+  right(90);
+  fwd(fullTile);
+  fwd(fullTile);
+  right(90);
+  fwd(fullTile);
+  right(90);
+  fwd(fullTile);
+  
   while (1) {delay(1000000);}
 
 }
